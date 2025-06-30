@@ -64,46 +64,42 @@ const images = [
   },
 ];
 
-
-
 const gallery = document.querySelector('.gallery');
 
-images.forEach(image => {
-  const listItem = document.createElement('li');
-  listItem.classList.add('gallery-item');
-  const link = document.createElement('a');
-  link.classList.add('gallery-link');
-  link.href = image.original;
-  const img = document.createElement('img');
+gallery.innerHTML = images.map(({ preview, original, description }) =>
+  `<li class="gallery-item">
+      <a class="gallery-link" href="${original}">
+        <img
+          class="gallery-image"
+          src="${preview}"
+          data-source="${original}"
+          alt="${description}"
+        />
+      </a>
+  </li>`
+).join('');
 
-  img.classList.add('gallery-image');
-  img.src = image.preview;
-  img.dataset.source = image.original;
-  img.alt = image.description;
+gallery.addEventListener('click', (e) => {
+  e.preventDefault();
 
-  link.appendChild(img);
-  listItem.appendChild(link);
-  gallery.appendChild(listItem);
-
-
-
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-
-   
-    const modal = basicLightbox.create(
-      `<img src="${event.target.dataset.source}" />`
+  if (e.target.nodeName !== 'IMG') return;
+    const imageUrl = e.target.dataset.source;
+    const imageAlt = e.target.alt;
+    
+    const instance = basicLightbox.create(
+      `<img src="${imageUrl}" alt="${imageAlt}" width="800" height="600">`
     );
 
-    modal.show();
-
-    
-    if (modal.visible()) {
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          modal.close();
-        }
-      });
+  function onEscPress(e) {
+    if (e.key === 'Escape') {
+      instance.close();
     }
+  }
+
+  instance.show();
+  document.addEventListener('keydown', onEscPress);
+
+  instance.element().addEventListener('basiclightbox:close', () => {
+    document.removeEventListener('keydown', onEscPress);
   });
 });
